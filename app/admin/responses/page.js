@@ -199,11 +199,12 @@ function ManageForms() {
                       <Td>{form.form_classroom}</Td>
                       <Td>
                         <Button
-                          colorScheme="red"
                           size="sm"
-                          onClick={() => handleFormDelete(form)}
+                          onClick={() =>
+                            router.push(`/admin/responses/${form.form_id}`)
+                          }
                         >
-                          <DeleteIcon />
+                          View Response
                         </Button>
                       </Td>
                     </Tr>
