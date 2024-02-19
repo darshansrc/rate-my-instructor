@@ -33,6 +33,28 @@ export default function DashboardLayout({ children }) {
           <Button
             className="w-full my-2"
             as={NextLink}
+            href="/admin/classrooms"
+            textDecoration="none"
+            textAlign="left"
+            backgroundColor={isActive("/admin/classrooms") ? "blue.500" : ""}
+            fontWeight={isActive("/admin/classrooms") ? "bold" : "normal"}
+          >
+            Manage Classrooms
+          </Button>
+          <Button
+            className="w-full my-2"
+            as={NextLink}
+            href="/admin/subjects"
+            textDecoration="none"
+            textAlign="left"
+            backgroundColor={isActive("/admin/subjects") ? "blue.500" : ""}
+            fontWeight={isActive("/admin/subjects") ? "bold" : "normal"}
+          >
+            Manage subjects
+          </Button>
+          <Button
+            className="w-full my-2"
+            as={NextLink}
             href="/admin/questions"
             textDecoration="none"
             textAlign="left"

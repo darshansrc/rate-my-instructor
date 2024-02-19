@@ -1,5 +1,4 @@
 "use client";
-
 import { AddIcon, ChevronLeftIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -34,38 +33,32 @@ import React, { useEffect, useState } from "react";
 import supabase from "../../../lib/supabase";
 import { useRouter } from "next/navigation";
 
-function ManageStudents() {
+function ManageClassrooms() {
   const router = useRouter();
-  const [students, setStudents] = useState([]);
-  const [departments, setDepartments] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [shouldRefetch, setShouldRefetch] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch students
-        const { data: studentsData, error: studentsError } = await supabase
-          .from("student_table")
+        // Fetch classrooms
+        const { data: classroomsData, error: classroomsError } = await supabase
+          .from("classroom_table")
           .select("*");
 
         // Fetch departments for dropdown
         const { data: departmentsData, error: departmentsError } =
           await supabase.from("department_table").select("*");
 
-        const { data: classroomsData, error: classroomsError } = await supabase
-          .from("classroom_table")
-          .select("*");
-
-        if (studentsError || departmentsError) {
+        if (classroomsError || departmentsError) {
           console.error(
             "Error fetching data:",
-            studentsError || departmentsError
+            classroomsError || departmentsError
           );
         } else {
-          setStudents(studentsData || []);
-          setDepartments(departmentsData || []);
           setClassrooms(classroomsData || []);
+          setDepartments(departmentsData || []);
           setShouldRefetch(false);
         }
       } catch (error) {
@@ -78,57 +71,62 @@ function ManageStudents() {
     }
   }, [shouldRefetch]);
 
-  const handleStudentDelete = async (studentDetails) => {
-    console.log("Student to be deleted:", studentDetails);
+  const handleClassroomDelete = async (classroomDetails) => {
+    console.log("Classroom to be deleted:", classroomDetails);
     try {
       const { data, error } = await supabase
-        .from("student_table")
+        .from("classroom_table")
         .delete()
-        .eq("uid", studentDetails.uid);
+        .eq("classroom_id", classroomDetails.classroom_id);
       if (error) {
-        console.error("Error deleting student:", error.message);
+        console.error("Error deleting classroom:", error.message);
       } else {
-        setStudents((prevStudents) =>
-          prevStudents.filter((student) => student.uid !== studentDetails.uid)
+        setClassrooms((prevClassrooms) =>
+          prevClassrooms.filter(
+            (classroom) =>
+              classroom.classroom_id !== classroomDetails.classroom_id
+          )
         );
         setShouldRefetch(true);
       }
     } catch (error) {
-      console.error("Error deleting student:", error.message);
+      console.error("Error deleting classroom:", error.message);
     }
   };
 
   // MODAL HANDLING
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [studentDetails, setStudentDetails] = useState({
-    name: "",
-    email: "",
+  const [classroomDetails, setClassroomDetails] = useState({
+    classroom_name: "",
+    classroom_department: "",
     department_id: "",
-    usn: "",
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    setStudentDetails((prevDetails) => ({
+    setClassroomDetails((prevDetails) => ({
       ...prevDetails,
       [name]: value,
     }));
   };
 
-  const handleAdd = async (studentDetails) => {
+  const handleAdd = async (classroomDetails) => {
     try {
       const { data, error } = await supabase
-        .from("student_table")
-        .upsert([studentDetails]);
+        .from("classroom_table")
+        .upsert([classroomDetails]);
       if (error) {
-        console.error("Error adding student:", error.message);
+        console.error("Error adding classroom:", error.message);
       } else {
-        setStudents((prevStudents) => [...prevStudents, studentDetails]);
+        setClassrooms((prevClassrooms) => [
+          ...prevClassrooms,
+          classroomDetails,
+        ]);
         setShouldRefetch(true);
       }
     } catch (error) {
-      console.error("Error adding student:", error.message);
+      console.error("Error adding classroom:", error.message);
     }
     onClose();
   };
@@ -177,7 +175,7 @@ function ManageStudents() {
             </ListItem>
             <ListItem marginRight={5}>
               <Button onClick={onOpen}>
-                Add Student <AddIcon margin={2} />
+                Add Classroom <AddIcon margin={2} />
               </Button>
             </ListItem>
           </List>
@@ -189,23 +187,16 @@ function ManageStudents() {
                 <Thead>
                   <Tr>
                     <Th fontWeight="bold" fontSize="lg">
-                      ID
+                      Classroom ID
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
-                      Name
+                      Classroom Name
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
-                      Email
+                      Classroom Department
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
                       Department ID
-                    </Th>
-                    <Th fontWeight="bold" fontSize="lg">
-                      Classroom ID
-                    </Th>
-
-                    <Th fontWeight="bold" fontSize="lg">
-                      USN
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
                       Action
@@ -213,19 +204,17 @@ function ManageStudents() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {students.map((student) => (
-                    <Tr key={student.student_id}>
-                      <Td>{student.student_id}</Td>
-                      <Td>{student.name}</Td>
-                      <Td>{student.email}</Td>
-                      <Td>{student.department_id}</Td>
-                      <Td>{student.classroom_id}</Td>
-                      <Td>{student.usn}</Td>
+                  {classrooms.map((classroom) => (
+                    <Tr key={classroom.classroom_id}>
+                      <Td>{classroom.classroom_id}</Td>
+                      <Td>{classroom.classroom_name}</Td>
+                      <Td>{classroom.classroom_department}</Td>
+                      <Td>{classroom.department_id}</Td>
                       <Td>
                         <Button
                           colorScheme="red"
                           size="sm"
-                          onClick={() => handleStudentDelete(student)}
+                          onClick={() => handleClassroomDelete(classroom)}
                         >
                           <DeleteIcon />
                         </Button>
@@ -239,26 +228,26 @@ function ManageStudents() {
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
               <ModalContent>
-                <ModalHeader>Add Student</ModalHeader>
+                <ModalHeader>Add Classroom</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
                   <FormControl mb={4}>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Classroom Name</FormLabel>
                     <Input
                       required
                       type="text"
-                      name="name"
-                      value={studentDetails.name}
+                      name="classroom_name"
+                      value={classroomDetails.classroom_name}
                       onChange={handleInputChange}
                     />
                   </FormControl>
                   <FormControl mb={4}>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Classroom Department</FormLabel>
                     <Input
                       required
-                      type="email"
-                      name="email"
-                      value={studentDetails.email}
+                      type="text"
+                      name="classroom_department"
+                      value={classroomDetails.classroom_department}
                       onChange={handleInputChange}
                     />
                   </FormControl>
@@ -266,7 +255,7 @@ function ManageStudents() {
                     <FormLabel>Department</FormLabel>
                     <Select
                       name="department_id"
-                      value={studentDetails.department_id}
+                      value={classroomDetails.department_id}
                       onChange={handleInputChange}
                       placeholder="Select department"
                     >
@@ -280,40 +269,12 @@ function ManageStudents() {
                       ))}
                     </Select>
                   </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Classroom</FormLabel>
-                    <Select
-                      name="classroom_id"
-                      value={studentDetails.classroom_id}
-                      onChange={handleInputChange}
-                      placeholder="Select classroom"
-                    >
-                      {classrooms.map((classroom) => (
-                        <option
-                          key={classroom.classroom_id}
-                          value={classroom.classroom_id}
-                        >
-                          {classroom.classroom_name}
-                        </option>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>USN</FormLabel>
-                    <Input
-                      required
-                      type="text"
-                      name="usn"
-                      value={studentDetails.usn}
-                      onChange={handleInputChange}
-                    />
-                  </FormControl>
                 </ModalBody>
                 <ModalFooter>
                   <Button
                     colorScheme="blue"
                     mr={3}
-                    onClick={() => handleAdd(studentDetails)}
+                    onClick={() => handleAdd(classroomDetails)}
                   >
                     Add
                   </Button>
@@ -330,4 +291,4 @@ function ManageStudents() {
   );
 }
 
-export default ManageStudents;
+export default ManageClassrooms;

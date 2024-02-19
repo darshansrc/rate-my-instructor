@@ -1,5 +1,4 @@
 "use client";
-
 import { AddIcon, ChevronLeftIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -34,37 +33,29 @@ import React, { useEffect, useState } from "react";
 import supabase from "../../../lib/supabase";
 import { useRouter } from "next/navigation";
 
-function ManageStudents() {
+function ManageForms() {
   const router = useRouter();
-  const [students, setStudents] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  const [forms, setForms] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
   const [shouldRefetch, setShouldRefetch] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch students
-        const { data: studentsData, error: studentsError } = await supabase
-          .from("student_table")
+        // Fetch forms
+        const { data: formsData, error: formsError } = await supabase
+          .from("form_table")
           .select("*");
 
-        // Fetch departments for dropdown
-        const { data: departmentsData, error: departmentsError } =
-          await supabase.from("department_table").select("*");
-
+        // Fetch classrooms for dropdown
         const { data: classroomsData, error: classroomsError } = await supabase
           .from("classroom_table")
           .select("*");
 
-        if (studentsError || departmentsError) {
-          console.error(
-            "Error fetching data:",
-            studentsError || departmentsError
-          );
+        if (formsError || classroomsError) {
+          console.error("Error fetching data:", formsError || classroomsError);
         } else {
-          setStudents(studentsData || []);
-          setDepartments(departmentsData || []);
+          setForms(formsData || []);
           setClassrooms(classroomsData || []);
           setShouldRefetch(false);
         }
@@ -78,57 +69,55 @@ function ManageStudents() {
     }
   }, [shouldRefetch]);
 
-  const handleStudentDelete = async (studentDetails) => {
-    console.log("Student to be deleted:", studentDetails);
+  const handleFormDelete = async (formDetails) => {
+    console.log("Form to be deleted:", formDetails);
     try {
       const { data, error } = await supabase
-        .from("student_table")
+        .from("form_table")
         .delete()
-        .eq("uid", studentDetails.uid);
+        .eq("form_id", formDetails.form_id);
       if (error) {
-        console.error("Error deleting student:", error.message);
+        console.error("Error deleting form:", error.message);
       } else {
-        setStudents((prevStudents) =>
-          prevStudents.filter((student) => student.uid !== studentDetails.uid)
+        setForms((prevForms) =>
+          prevForms.filter((form) => form.form_id !== formDetails.form_id)
         );
         setShouldRefetch(true);
       }
     } catch (error) {
-      console.error("Error deleting student:", error.message);
+      console.error("Error deleting form:", error.message);
     }
   };
 
   // MODAL HANDLING
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [studentDetails, setStudentDetails] = useState({
-    name: "",
-    email: "",
-    department_id: "",
-    usn: "",
+  const [formDetails, setFormDetails] = useState({
+    form_name: "",
+    form_classroom: "",
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    setStudentDetails((prevDetails) => ({
+    setFormDetails((prevDetails) => ({
       ...prevDetails,
       [name]: value,
     }));
   };
 
-  const handleAdd = async (studentDetails) => {
+  const handleAdd = async (formDetails) => {
     try {
       const { data, error } = await supabase
-        .from("student_table")
-        .upsert([studentDetails]);
+        .from("form_table")
+        .upsert([formDetails]);
       if (error) {
-        console.error("Error adding student:", error.message);
+        console.error("Error adding form:", error.message);
       } else {
-        setStudents((prevStudents) => [...prevStudents, studentDetails]);
+        setForms((prevForms) => [...prevForms, formDetails]);
         setShouldRefetch(true);
       }
     } catch (error) {
-      console.error("Error adding student:", error.message);
+      console.error("Error adding form:", error.message);
     }
     onClose();
   };
@@ -177,7 +166,7 @@ function ManageStudents() {
             </ListItem>
             <ListItem marginRight={5}>
               <Button onClick={onOpen}>
-                Add Student <AddIcon margin={2} />
+                Add Form <AddIcon margin={2} />
               </Button>
             </ListItem>
           </List>
@@ -189,23 +178,13 @@ function ManageStudents() {
                 <Thead>
                   <Tr>
                     <Th fontWeight="bold" fontSize="lg">
-                      ID
+                      Form ID
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
-                      Name
-                    </Th>
-                    <Th fontWeight="bold" fontSize="lg">
-                      Email
-                    </Th>
-                    <Th fontWeight="bold" fontSize="lg">
-                      Department ID
+                      Form Name
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
                       Classroom ID
-                    </Th>
-
-                    <Th fontWeight="bold" fontSize="lg">
-                      USN
                     </Th>
                     <Th fontWeight="bold" fontSize="lg">
                       Action
@@ -213,19 +192,16 @@ function ManageStudents() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {students.map((student) => (
-                    <Tr key={student.student_id}>
-                      <Td>{student.student_id}</Td>
-                      <Td>{student.name}</Td>
-                      <Td>{student.email}</Td>
-                      <Td>{student.department_id}</Td>
-                      <Td>{student.classroom_id}</Td>
-                      <Td>{student.usn}</Td>
+                  {forms.map((form) => (
+                    <Tr key={form.form_id}>
+                      <Td>{form.form_id}</Td>
+                      <Td>{form.form_name}</Td>
+                      <Td>{form.form_classroom}</Td>
                       <Td>
                         <Button
                           colorScheme="red"
                           size="sm"
-                          onClick={() => handleStudentDelete(student)}
+                          onClick={() => handleFormDelete(form)}
                         >
                           <DeleteIcon />
                         </Button>
@@ -239,52 +215,24 @@ function ManageStudents() {
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
               <ModalContent>
-                <ModalHeader>Add Student</ModalHeader>
+                <ModalHeader>Add Form</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
                   <FormControl mb={4}>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Form Name</FormLabel>
                     <Input
                       required
                       type="text"
-                      name="name"
-                      value={studentDetails.name}
+                      name="form_name"
+                      value={formDetails.form_name}
                       onChange={handleInputChange}
                     />
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Email</FormLabel>
-                    <Input
-                      required
-                      type="email"
-                      name="email"
-                      value={studentDetails.email}
-                      onChange={handleInputChange}
-                    />
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Department</FormLabel>
-                    <Select
-                      name="department_id"
-                      value={studentDetails.department_id}
-                      onChange={handleInputChange}
-                      placeholder="Select department"
-                    >
-                      {departments.map((department) => (
-                        <option
-                          key={department.department_id}
-                          value={department.department_id}
-                        >
-                          {department.department_name}
-                        </option>
-                      ))}
-                    </Select>
                   </FormControl>
                   <FormControl mb={4}>
                     <FormLabel>Classroom</FormLabel>
                     <Select
-                      name="classroom_id"
-                      value={studentDetails.classroom_id}
+                      name="form_classroom"
+                      value={formDetails.form_classroom}
                       onChange={handleInputChange}
                       placeholder="Select classroom"
                     >
@@ -298,22 +246,12 @@ function ManageStudents() {
                       ))}
                     </Select>
                   </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>USN</FormLabel>
-                    <Input
-                      required
-                      type="text"
-                      name="usn"
-                      value={studentDetails.usn}
-                      onChange={handleInputChange}
-                    />
-                  </FormControl>
                 </ModalBody>
                 <ModalFooter>
                   <Button
                     colorScheme="blue"
                     mr={3}
-                    onClick={() => handleAdd(studentDetails)}
+                    onClick={() => handleAdd(formDetails)}
                   >
                     Add
                   </Button>
@@ -330,4 +268,4 @@ function ManageStudents() {
   );
 }
 
-export default ManageStudents;
+export default ManageForms;
