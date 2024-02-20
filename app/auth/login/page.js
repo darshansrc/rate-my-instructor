@@ -83,7 +83,7 @@ export default function Login() {
       // User is an admin
       localStorage.setItem("userRole", "admin");
       localStorage.setItem("userData", JSON.stringify(adminData));
-      router.push("/admin");
+      router.push("/admin/responses");
       setLoading(false);
     } else {
       // User not found in any table
@@ -101,7 +101,7 @@ export default function Login() {
         "{}";
 
       if (user === "admin") {
-        router.push("/admin");
+        router.push("/admin/responses");
       } else if (user === "student") {
         router.push("/student");
       } else if (user.priority === "faculty") {

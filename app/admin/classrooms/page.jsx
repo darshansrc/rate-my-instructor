@@ -168,7 +168,7 @@ function ManageClassrooms() {
         <GridItem area="nav" margin={10}>
           <List display="flex" flexDirection="row">
             <ListItem marginRight={5}>
-              <Button onClick={() => router.push("/admin")}>
+              <Button onClick={() => router.push("/responses")}>
                 <ChevronLeftIcon />
                 Back
               </Button>

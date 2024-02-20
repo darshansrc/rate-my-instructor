@@ -33,6 +33,17 @@ export default function DashboardLayout({ children }) {
           <Button
             className="w-full my-2"
             as={NextLink}
+            href="/admin/responses"
+            textAlign="left"
+            textDecoration="none"
+            backgroundColor={isActive("/admin/responses") ? "blue.500" : ""}
+            fontWeight={isActive("/admin/responses") ? "bold" : "normal"}
+          >
+            Manage Responses
+          </Button>
+          <Button
+            className="w-full my-2"
+            as={NextLink}
             href="/admin/classrooms"
             textDecoration="none"
             textAlign="left"
@@ -85,17 +96,7 @@ export default function DashboardLayout({ children }) {
           >
             Manage Students
           </Button>
-          <Button
-            className="w-full my-2"
-            as={NextLink}
-            href="/admin/responses"
-            textAlign="left"
-            textDecoration="none"
-            backgroundColor={isActive("/admin/responses") ? "blue.500" : ""}
-            fontWeight={isActive("/admin/responses") ? "bold" : "normal"}
-          >
-            Manage Responses
-          </Button>
+
           <Button
             className="w-full my-2"
             as={NextLink}
@@ -110,6 +111,8 @@ export default function DashboardLayout({ children }) {
 
           <Button
             className="w-full my-2"
+            colorScheme={"red"}
+            variant={"outline"}
             onClick={() => {
               localStorage.clear();
               router.push("/auth/login");
