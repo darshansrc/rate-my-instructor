@@ -58,9 +58,6 @@ const FeedbackForm = ({
     };
 
     fetchResponses();
-  }, [classroomId, subjectId]);
-
-  useEffect(() => {
     const fetchQuestions = async () => {
       setLoading(true);
       const { data: subjectData } = await supabase
@@ -95,6 +92,20 @@ const FeedbackForm = ({
     setResponses(newResponses);
   };
 
+  const handleDeleteResponse = async () => {
+    if (confirm("Are you sure you want to delete your response?")) {
+      const { error: deleteError } = await supabase
+        .from("response_table")
+        .delete()
+        .eq("classroom_id", classroomId?.toString())
+        .eq("form_id", formId?.toString())
+        .eq("student_id", studentId?.toString());
+      if (!deleteError) {
+        alert("Response deleted successfully!");
+        router.push("/student");
+      }
+    }
+  };
   const handleSubmit = async () => {
     // Submit responses to the responses table
     console.log("Responses:", responses);
@@ -146,12 +157,22 @@ const FeedbackForm = ({
             <Text py="2">
               You have already submitted feedback for this form.
             </Text>
-            <Button
-              colorScheme={"blue"}
-              onClick={() => router.push("/student")}
-            >
-              Back to home
-            </Button>
+            <div className="flex  items-center justify-center flex-row gap-2">
+              <Button
+                colorScheme={"blue"}
+                onClick={() => router.push("/student")}
+              >
+                Back to home
+              </Button>
+
+              <Button
+                colorScheme={"red"}
+                variant={"outline"}
+                onClick={handleDeleteResponse}
+              >
+                Delete Response
+              </Button>
+            </div>
           </CardBody>
         </Card>
       </div>
