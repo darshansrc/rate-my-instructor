@@ -37,6 +37,17 @@ const ManageForms = () => {
     router.push(`/student/${formId}`);
   };
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user =
+        (typeof window !== "undefined" && localStorage.getItem("userRole")) ||
+        "{}";
+      if (!user) {
+        router.push("/");
+      }
+    }
+  });
+
   return (
     <Box>
       <Box

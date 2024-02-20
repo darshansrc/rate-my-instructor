@@ -61,6 +61,17 @@ const FeedbackFormsContainer = ({ params }) => {
     }
   };
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user =
+        (typeof window !== "undefined" && localStorage.getItem("userRole")) ||
+        "{}";
+      if (!user) {
+        router.push("/");
+      }
+    }
+  });
+
   const handlePreviousStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);

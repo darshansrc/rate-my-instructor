@@ -44,7 +44,6 @@ const FeedbackForm = ({
 
   useEffect(() => {
     const fetchResponses = async () => {
-      setLoading(true);
       const { data: responsesData } = await supabase
         .from("response_table")
         .select("*")
@@ -56,8 +55,6 @@ const FeedbackForm = ({
       if (responsesData.length) {
         setIsFormAlreadySubmitted(true);
       }
-
-      setLoading(false);
     };
 
     fetchResponses();
