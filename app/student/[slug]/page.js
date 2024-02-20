@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Text } from "@chakra-ui/react";
+import { Box, CircularProgress, Text } from "@chakra-ui/react";
 import FeedbackForm from "./FeedbackForm"; // Assuming FeedbackForm component is in a separate file
 import supabase from "../../../lib/supabase";
 
@@ -78,9 +78,15 @@ const FeedbackFormsContainer = ({ params }) => {
           studentId={studentData.student_id}
           onPrevious={handlePreviousStep}
           isLastStep={currentStep === subjects.length - 1}
+          isFirstStep={currentStep === 0}
         />
       ) : (
-        <Text>No subjects found for this classroom.</Text>
+        <Box
+          p={4}
+          className="flex flex-col w-full items-center h-screen justify-center"
+        >
+          <CircularProgress isIndeterminate color="blue.500" />
+        </Box>
       )}
     </Box>
   );

@@ -16,14 +16,11 @@ const ManageForms = () => {
       setStudentData(JSON.parse(userDataString));
       if (!userDataString) return; // Handle case where userData is not in localStorage
       const userData = JSON.parse(userDataString);
-      console.log("UserData localstorage", userData.classroom_id);
 
       const { data: formsData, error: formsError } = await supabase
         .from("form_table")
         .select("*")
         .eq("form_classroom", userData.classroom_id);
-
-      console.log("formsData", formsData);
 
       if (formsError) {
         console.error("Error fetching forms data:", formsError.message);
@@ -41,10 +38,25 @@ const ManageForms = () => {
   };
 
   return (
-    <Box p={4}>
-      <Heading as="h1" mb={4}>
-        Welcome {studentData?.name}
-      </Heading>
+    <Box>
+      <Box
+        borderWidth="1px"
+        className="flex w-full rounded justify-between items-center p-4   "
+      >
+        <p className="text-lg font-medium ">Welcome {studentData?.name}</p>
+
+        <Button
+          colorScheme="red"
+          variant="outline"
+          className="mr-4"
+          onClick={() => {
+            localStorage.clear();
+            router.push("/auth/login");
+          }}
+        >
+          Log out
+        </Button>
+      </Box>
       <Flex flexWrap="wrap">
         {forms.map((form) => (
           <Box
@@ -54,11 +66,12 @@ const ManageForms = () => {
             borderWidth="1px"
             borderRadius="md"
             m={2}
+            className="w-full md:w-1/3"
           >
             <Heading as="h2" size="md" mb={2}>
               {form.form_name}
             </Heading>
-            <Text mb={2}>Classroom ID: {form.form_classroom}</Text>
+
             <Button
               colorScheme="blue"
               onClick={() => handleFormClick(form.form_id)}

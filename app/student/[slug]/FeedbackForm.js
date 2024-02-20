@@ -10,9 +10,16 @@ import {
   Stack,
   RadioGroup,
   Card,
+  CircularProgress,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  CardBody,
 } from "@chakra-ui/react";
 import supabase from "../../../lib/supabase";
 import { useRouter } from "next/navigation";
+import { CheckCircleIcon } from "@chakra-ui/icons";
 
 const FeedbackForm = ({
   classroomId,
@@ -22,14 +29,39 @@ const FeedbackForm = ({
   isLastStep,
   formId,
   studentId,
+  isFirstStep,
 }) => {
   const [questions, setQuestions] = useState([]);
   const [responses, setResponses] = useState([]);
   const [subject, setSubject] = useState();
   const [faculty, setFaculty] = useState();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [isFormAlreadySubmitted, setIsFormAlreadySubmitted] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchResponses = async () => {
+      setLoading(true);
+      const { data: responsesData } = await supabase
+        .from("response_table")
+        .select("*")
+        .eq("classroom_id", classroomId?.toString())
+        .eq("form_id", formId?.toString())
+        .eq("student_id", studentId?.toString())
+        .eq("subject_id", subjectId?.toString());
+
+      if (responsesData.length) {
+        setIsFormAlreadySubmitted(true);
+      }
+
+      setLoading(false);
+    };
+
+    fetchResponses();
+  }, [classroomId, subjectId]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -70,20 +102,34 @@ const FeedbackForm = ({
     // Submit responses to the responses table
     console.log("Responses:", responses);
 
-    const { data, error } = await supabase.from("response_table").insert({
-      classroom_id: classroomId,
-      response: responses,
-      form_id: formId,
-      subject_id: subjectId,
-      student_id: studentId,
-    });
+    const isFormComplete = questions.every((question) =>
+      responses.some(
+        (response) => response.question_id === question.question_id
+      )
+    );
 
-    setQuestions();
+    if (!isFormComplete) {
+      setError("Please answer all questions before submitting.");
+      return;
+    } else {
+      setError(null);
+    }
+
+    const { error: submitError } = await supabase
+      .from("response_table")
+      .insert({
+        classroom_id: classroomId,
+        response: responses,
+        form_id: formId,
+        subject_id: subjectId,
+        student_id: studentId,
+      });
 
     if (!isLastStep) {
+      setQuestions();
       onNext();
     } else {
-      alert("Feedback submitted successfully!");
+      if (!submitError) alert("Feedback submitted successfully!");
       router.push("/student");
     }
   };
@@ -93,14 +139,35 @@ const FeedbackForm = ({
     setQuestions();
   };
 
+  if (isFormAlreadySubmitted) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <Card className="flex max-w-[400px]  flex-col w-full items-center  justify-center">
+          <CardBody className=" flex p-32  flex-col items-center justify-center rounded">
+            <CheckCircleIcon className="text-[100px] mb-2" />
+            <Heading className="text-xl">Feedback already submitted!</Heading>
+            <Text py="2">
+              You have already submitted feedback for this form.
+            </Text>
+            <Button
+              colorScheme={"blue"}
+              onClick={() => router.push("/student")}
+            >
+              Back to home
+            </Button>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <Box p={4} className="flex flex-col w-full items-center justify-center">
-        <div className="max-w-[450px]">
-          <Heading as="h1" size="xl">
-            Loading...
-          </Heading>
-        </div>
+      <Box
+        p={4}
+        className="flex flex-col w-full items-center h-screen justify-center"
+      >
+        <CircularProgress isIndeterminate color="blue.500" />
       </Box>
     );
   }
@@ -133,8 +200,19 @@ const FeedbackForm = ({
             </RadioGroup>
           </Card>
         ))}
+
+        {error && (
+          <Alert status="error" className="my-4 rounded">
+            <AlertIcon />
+
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex flex-row gap-4">
-          <Button onClick={handleGoBack}>Back</Button>
+          <Button onClick={handleGoBack} isDisabled={isFirstStep}>
+            Back
+          </Button>
           <Button colorScheme="blue" onClick={handleSubmit}>
             {isLastStep ? "Submit" : "Next"}
           </Button>
